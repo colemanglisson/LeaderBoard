@@ -30,16 +30,20 @@ async function getAccessToken() {
   const clientSecret = process.env.SF_CLIENT_SECRET;
   const instanceUrl = process.env.SF_INSTANCE_URL;
 
-  // Encode credentials as Basic Auth header
-  const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+  // Try sending credentials in POST body (not Basic Auth header)
+  const params = new URLSearchParams();
+  params.append('grant_type', 'client_credentials');
+  params.append('client_id', clientId);
+  params.append('client_secret', clientSecret);
+
+  console.log('Attempting auth to:', `${instanceUrl}/services/oauth2/token`);
+  console.log('Client ID starts with:', clientId ? clientId.substring(0, 10) + '...' : 'MISSING');
+  console.log('Client Secret present:', !!clientSecret);
 
   const response = await fetch(`${instanceUrl}/services/oauth2/token`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Authorization': `Basic ${credentials}`
-    },
-    body: 'grant_type=client_credentials'
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: params.toString()
   });
 
   const text = await response.text();
@@ -129,6 +133,17 @@ app.get('/api/data', async (req, res) => {
     res.json({ success: true, ...data });
   } catch (err) {
     console.error('Error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Debug endpoint to test auth without querying SF
+app.get('/api/test-auth', async (req, res) => {
+  try {
+    accessToken = null; // force fresh token
+    const token = await getAccessToken();
+    res.json({ success: true, message: 'Auth successful', tokenPreview: token.substring(0, 20) + '...' });
+  } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
