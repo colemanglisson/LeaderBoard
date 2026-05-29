@@ -6,7 +6,9 @@ const path = require('path');
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+
+// Serve static files from root directory
+app.use(express.static(path.join(__dirname)));
 
 const REP_MAP = {
   '005aZ00000Oa6fN': 'Victoria G.',
@@ -62,15 +64,9 @@ async function fetchLeaderboardData() {
       )
     `);
 
-    // Build rep stats
     const stats = {};
     OWNER_IDS.forEach(id => {
-      stats[REP_MAP[id]] = {
-        submissions: 0,
-        approvals: 0,
-        funded: 0,
-        fundedAmt: 0
-      };
+      stats[REP_MAP[id]] = { submissions: 0, approvals: 0, funded: 0, fundedAmt: 0 };
     });
 
     result.records.forEach(rec => {
@@ -84,7 +80,6 @@ async function fetchLeaderboardData() {
       }
     });
 
-    // Detect new events since last fetch for celebrations
     const newEvents = [];
     if (lastData) {
       Object.entries(stats).forEach(([name, curr]) => {
@@ -104,13 +99,11 @@ async function fetchLeaderboardData() {
     return { stats, newEvents, lastFetch, month: now.toLocaleString('default', { month: 'long', year: 'numeric' }) };
   } catch (err) {
     console.error('Salesforce error:', err.message);
-    // Try reconnecting on next call
     sfConnection = null;
     throw err;
   }
 }
 
-// API endpoint
 app.get('/api/data', async (req, res) => {
   try {
     const data = await fetchLeaderboardData();
@@ -120,7 +113,6 @@ app.get('/api/data', async (req, res) => {
   }
 });
 
-// Orum points are still stored server-side in memory (persists until redeploy)
 let orumData = {
   monthly: Object.fromEntries(Object.values(REP_MAP).map(n => [n, 0])),
   weekly: Object.fromEntries(Object.values(REP_MAP).map(n => [n, 0])),
@@ -147,9 +139,9 @@ app.get('/api/orum', (req, res) => {
   res.json({ success: true, orumData });
 });
 
-app.post('/api/orum/reset-weekly', (req, res) => {
-  Object.keys(orumData.weekly).forEach(k => orumData.weekly[k] = 0);
-  res.json({ success: true });
+// Serve index.html for root
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
