@@ -19,57 +19,60 @@ const REP_MAP = {
 };
 
 const OWNER_IDS = Object.keys(REP_MAP);
-
 let accessToken = null;
-let tokenExpiry = null;
 let lastData = null;
 let lastFetch = null;
 
 async function getAccessToken() {
-  // Refresh if no token or expiring in next 5 minutes
-  if (accessToken && tokenExpiry && Date.now() < tokenExpiry - 300000) {
-    return accessToken;
-  }
+  if (accessToken) return accessToken;
 
-  const params = new URLSearchParams({
-    grant_type: 'client_credentials',
-    client_id: process.env.SF_CLIENT_ID,
-    client_secret: process.env.SF_CLIENT_SECRET
-  });
+  const clientId = process.env.SF_CLIENT_ID;
+  const clientSecret = process.env.SF_CLIENT_SECRET;
+  const instanceUrl = process.env.SF_INSTANCE_URL;
 
-  const response = await fetch(`${process.env.SF_INSTANCE_URL}/services/oauth2/token`, {
+  // Encode credentials as Basic Auth header
+  const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+
+  const response = await fetch(`${instanceUrl}/services/oauth2/token`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: params.toString()
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': `Basic ${credentials}`
+    },
+    body: 'grant_type=client_credentials'
   });
 
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Auth failed: ${err}`);
-  }
+  const text = await response.text();
+  console.log('Auth response status:', response.status);
+  console.log('Auth response:', text);
 
-  const data = await response.json();
+  if (!response.ok) throw new Error(`Auth failed: ${text}`);
+
+  const data = JSON.parse(text);
   accessToken = data.access_token;
-  tokenExpiry = Date.now() + (data.expires_in ? data.expires_in * 1000 : 3600000);
-  console.log('Salesforce token obtained');
+  console.log('Got access token successfully');
   return accessToken;
 }
 
 async function sfQuery(soql) {
   const token = await getAccessToken();
-  const url = `${process.env.SF_INSTANCE_URL}/services/data/v58.0/query?q=${encodeURIComponent(soql)}`;
+  const instanceUrl = process.env.SF_INSTANCE_URL;
+  const url = `${instanceUrl}/services/data/v58.0/query?q=${encodeURIComponent(soql)}`;
+
   const response = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` }
   });
+
+  if (response.status === 401) {
+    accessToken = null;
+    return sfQuery(soql);
+  }
+
   if (!response.ok) {
     const err = await response.text();
-    // If token expired, clear and retry once
-    if (response.status === 401) {
-      accessToken = null;
-      return sfQuery(soql);
-    }
     throw new Error(`Query failed: ${err}`);
   }
+
   return response.json();
 }
 
@@ -79,19 +82,14 @@ async function fetchLeaderboardData() {
   const ownerIdList = OWNER_IDS.map(id => `'${id}'`).join(', ');
 
   const result = await sfQuery(`
-    SELECT OwnerId,
-           csbs__Underwriting_Date_Time__c,
-           csbs__Approved_Date_Time__c,
-           csbs__Funded_Date_Time__c,
-           csbs__Funded__c
+    SELECT OwnerId, csbs__Underwriting_Date_Time__c, csbs__Approved_Date_Time__c,
+           csbs__Funded_Date_Time__c, csbs__Funded__c
     FROM Opportunity
     WHERE OwnerId IN (${ownerIdList})
     AND CreatedDate >= ${firstOfMonth}
-    AND (
-      csbs__Underwriting_Date_Time__c != null
+    AND (csbs__Underwriting_Date_Time__c != null
       OR csbs__Approved_Date_Time__c != null
-      OR csbs__Funded_Date_Time__c != null
-    )
+      OR csbs__Funded_Date_Time__c != null)
   `);
 
   const stats = {};
@@ -116,16 +114,12 @@ async function fetchLeaderboardData() {
       const prev = lastData[name] || {};
       if (curr.submissions > (prev.submissions || 0)) newEvents.push({ rep: name, type: 'Submission', amount: 0 });
       if (curr.approvals > (prev.approvals || 0)) newEvents.push({ rep: name, type: 'Approval', amount: 0 });
-      if (curr.funded > (prev.funded || 0)) {
-        const newAmt = curr.fundedAmt - (prev.fundedAmt || 0);
-        newEvents.push({ rep: name, type: 'Funded', amount: newAmt });
-      }
+      if (curr.funded > (prev.funded || 0)) newEvents.push({ rep: name, type: 'Funded', amount: curr.fundedAmt - (prev.fundedAmt || 0) });
     });
   }
 
   lastData = stats;
   lastFetch = new Date().toISOString();
-
   return { stats, newEvents, lastFetch, month: now.toLocaleString('default', { month: 'long', year: 'numeric' }) };
 }
 
@@ -142,16 +136,13 @@ app.get('/api/data', async (req, res) => {
 let orumData = {
   monthly: Object.fromEntries(Object.values(REP_MAP).map(n => [n, 0])),
   weekly: Object.fromEntries(Object.values(REP_MAP).map(n => [n, 0])),
-  leaders: { dials: null, connects: null, convos: null, meetings: null },
-  feed: []
+  leaders: { dials: null, connects: null, convos: null, meetings: null }
 };
 
 app.post('/api/orum', (req, res) => {
   const { leaders } = req.body;
   const tally = {};
-  Object.values(leaders).forEach(rep => {
-    if (rep) tally[rep] = (tally[rep] || 0) + 1;
-  });
+  Object.values(leaders).forEach(rep => { if (rep) tally[rep] = (tally[rep] || 0) + 1; });
   Object.entries(tally).forEach(([rep, count]) => {
     const pts = count > 1 ? count * 0.5 : count;
     if (orumData.monthly[rep] !== undefined) orumData.monthly[rep] += pts;
@@ -161,13 +152,8 @@ app.post('/api/orum', (req, res) => {
   res.json({ success: true, orumData });
 });
 
-app.get('/api/orum', (req, res) => {
-  res.json({ success: true, orumData });
-});
-
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
+app.get('/api/orum', (req, res) => res.json({ success: true, orumData }));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Leaderboard running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Running on port ${PORT}`));
