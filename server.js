@@ -8,14 +8,14 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
 const REP_MAP = {
-  '005aZ00000Oa6fN': 'Victoria G.',
-  '005Hr00000HUOVE': 'Tony M.',
-  '005aZ00000AB5GW': 'Rafael R.',
-  '005Hr00000HUOUz': 'Benjamin S.',
-  '005Hr00000IEPIB': 'John R.',
-  '005aZ00000WYXOv': 'Miguel A.',
-  '005aZ00000NRfg9': 'Charles F.',
-  '005Hr00000IEPI6': 'Richard N.'
+  '005aZ00000Oa6fNQAR': 'Victoria G.',
+  '005Hr00000HUOVEIA5': 'Tony M.',
+  '005aZ00000AB5GWQA1': 'Rafael R.',
+  '005Hr00000HUOUzIAP': 'Benjamin S.',
+  '005Hr00000IEPIBIA5': 'John R.',
+  '005aZ00000WYXOvQAP': 'Miguel A.',
+  '005aZ00000NRfg9QAD': 'Charles F.',
+  '005Hr00000IEPI6IAP': 'Richard N.'
 };
 
 const OWNER_IDS = Object.keys(REP_MAP);
@@ -25,58 +25,27 @@ let lastFetch = null;
 
 async function getAccessToken() {
   if (accessToken) return accessToken;
-
-  const clientId = process.env.SF_CLIENT_ID;
-  const clientSecret = process.env.SF_CLIENT_SECRET;
-  const instanceUrl = process.env.SF_INSTANCE_URL;
-
-  // Try sending credentials in POST body (not Basic Auth header)
   const params = new URLSearchParams();
   params.append('grant_type', 'client_credentials');
-  params.append('client_id', clientId);
-  params.append('client_secret', clientSecret);
-
-  console.log('Attempting auth to:', `${instanceUrl}/services/oauth2/token`);
-  console.log('Client ID starts with:', clientId ? clientId.substring(0, 10) + '...' : 'MISSING');
-  console.log('Client Secret present:', !!clientSecret);
-
-  const response = await fetch(`${instanceUrl}/services/oauth2/token`, {
+  params.append('client_id', process.env.SF_CLIENT_ID);
+  params.append('client_secret', process.env.SF_CLIENT_SECRET);
+  const response = await fetch(`${process.env.SF_INSTANCE_URL}/services/oauth2/token`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: params.toString()
   });
-
   const text = await response.text();
-  console.log('Auth response status:', response.status);
-  console.log('Auth response:', text);
-
   if (!response.ok) throw new Error(`Auth failed: ${text}`);
-
-  const data = JSON.parse(text);
-  accessToken = data.access_token;
-  console.log('Got access token successfully');
+  accessToken = JSON.parse(text).access_token;
   return accessToken;
 }
 
 async function sfQuery(soql) {
   const token = await getAccessToken();
-  const instanceUrl = process.env.SF_INSTANCE_URL;
-  const url = `${instanceUrl}/services/data/v58.0/query?q=${encodeURIComponent(soql)}`;
-
-  const response = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-
-  if (response.status === 401) {
-    accessToken = null;
-    return sfQuery(soql);
-  }
-
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Query failed: ${err}`);
-  }
-
+  const url = `${process.env.SF_INSTANCE_URL}/services/data/v58.0/query?q=${encodeURIComponent(soql)}`;
+  const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (response.status === 401) { accessToken = null; return sfQuery(soql); }
+  if (!response.ok) { const err = await response.text(); throw new Error(`Query failed: ${err}`); }
   return response.json();
 }
 
@@ -90,11 +59,14 @@ async function fetchLeaderboardData() {
            csbs__Funded_Date_Time__c, csbs__Funded__c
     FROM Opportunity
     WHERE OwnerId IN (${ownerIdList})
-    AND CreatedDate >= ${firstOfMonth}
-    AND (csbs__Underwriting_Date_Time__c != null
-      OR csbs__Approved_Date_Time__c != null
-      OR csbs__Funded_Date_Time__c != null)
+    AND (
+      csbs__Underwriting_Date_Time__c >= ${firstOfMonth}
+      OR csbs__Approved_Date_Time__c >= ${firstOfMonth}
+      OR csbs__Funded_Date_Time__c >= ${firstOfMonth}
+    )
   `);
+
+  console.log(`Query returned ${result.totalSize} records`);
 
   const stats = {};
   OWNER_IDS.forEach(id => {
@@ -104,9 +76,9 @@ async function fetchLeaderboardData() {
   result.records.forEach(rec => {
     const name = REP_MAP[rec.OwnerId];
     if (!name) return;
-    if (rec.csbs__Underwriting_Date_Time__c) stats[name].submissions++;
-    if (rec.csbs__Approved_Date_Time__c) stats[name].approvals++;
-    if (rec.csbs__Funded_Date_Time__c) {
+    if (rec.csbs__Underwriting_Date_Time__c && new Date(rec.csbs__Underwriting_Date_Time__c) >= new Date(firstOfMonth)) stats[name].submissions++;
+    if (rec.csbs__Approved_Date_Time__c && new Date(rec.csbs__Approved_Date_Time__c) >= new Date(firstOfMonth)) stats[name].approvals++;
+    if (rec.csbs__Funded_Date_Time__c && new Date(rec.csbs__Funded_Date_Time__c) >= new Date(firstOfMonth)) {
       stats[name].funded++;
       stats[name].fundedAmt += parseFloat(rec.csbs__Funded__c || 0);
     }
@@ -137,12 +109,11 @@ app.get('/api/data', async (req, res) => {
   }
 });
 
-// Debug endpoint to test auth without querying SF
 app.get('/api/test-auth', async (req, res) => {
   try {
-    accessToken = null; // force fresh token
-    const token = await getAccessToken();
-    res.json({ success: true, message: 'Auth successful', tokenPreview: token.substring(0, 20) + '...' });
+    accessToken = null;
+    await getAccessToken();
+    res.json({ success: true, message: 'Auth successful' });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
