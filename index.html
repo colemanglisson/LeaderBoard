@@ -4,7 +4,6 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Apex Leaderboard</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.2/confetti.browser.min.js"></script>
 <style>
@@ -16,7 +15,6 @@
   --accent: #00d4ff; --green: #00e676; --orange: #ff6b35; --purple: #a855f7;
 }
 html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Barlow', sans-serif; }
-#app { min-height: 100vh; }
 .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
 .logo { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); }
 .logo span { color: var(--text); font-weight: 400; }
@@ -28,8 +26,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
 .main { display: grid; grid-template-columns: 1fr 340px; gap: 16px; padding: 16px; }
 .leaderboard-section { display: flex; flex-direction: column; gap: 12px; }
-.rep-row { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; display: grid; grid-template-columns: 36px 1fr 80px 80px 80px 80px 100px; align-items: center; gap: 12px; transition: border-color 0.2s; position: relative; overflow: hidden; }
-.rep-row:hover { border-color: rgba(255,255,255,0.2); }
+.rep-row { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; display: grid; grid-template-columns: 36px 1fr 80px 80px 80px 80px 100px; align-items: center; gap: 12px; position: relative; overflow: hidden; transition: border-color 0.3s; }
 .rep-row.rank-1 { border-color: rgba(245,197,24,0.4); background: linear-gradient(90deg, rgba(245,197,24,0.06) 0%, var(--surface) 40%); }
 .rep-row.rank-2 { border-color: rgba(168,178,193,0.3); }
 .rep-row.rank-3 { border-color: rgba(205,127,50,0.3); }
@@ -37,16 +34,16 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .rank-1 .rank-num { color: var(--gold); }
 .rank-2 .rank-num { color: var(--silver); }
 .rank-3 .rank-num { color: var(--bronze); }
-.rep-name { font-size: 15px; font-weight: 600; color: var(--text); }
 .rep-avatar { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; font-size: 11px; font-weight: 700; margin-right: 8px; border: 1px solid; }
+.rep-name { font-size: 15px; font-weight: 600; }
 .stat-cell { text-align: center; }
-.stat-val { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; color: var(--text); }
+.stat-val { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; }
 .stat-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
 .score-cell { text-align: right; }
 .score-big { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 900; color: var(--accent); }
 .score-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
 .bar-bg { position: absolute; bottom: 0; left: 0; height: 3px; width: 100%; background: var(--surface2); }
-.bar-fill { height: 100%; background: var(--accent); transition: width 1s ease; }
+.bar-fill { height: 100%; transition: width 1s ease; background: var(--accent); }
 .rank-1 .bar-fill { background: var(--gold); }
 .rank-2 .bar-fill { background: var(--silver); }
 .rank-3 .bar-fill { background: var(--bronze); }
@@ -56,12 +53,12 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .orum-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
 .orum-row:last-child { border-bottom: none; }
 .orum-cat { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
-.orum-leader { font-size: 14px; font-weight: 600; color: var(--text); }
+.orum-leader { font-size: 14px; font-weight: 600; }
 .orum-pts { font-size: 12px; color: var(--green); font-weight: 700; }
 .score-breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .breakdown-item { background: var(--surface2); border-radius: 8px; padding: 10px; text-align: center; }
 .breakdown-val { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 700; }
-.breakdown-lbl { font-size: 10px; color: var(--muted); letter-spacing: 0.5px; }
+.breakdown-lbl { font-size: 10px; color: var(--muted); }
 .add-data-btn { width: 100%; padding: 10px; background: transparent; border: 1px dashed rgba(0,212,255,0.4); border-radius: 8px; color: var(--accent); font-size: 13px; font-weight: 600; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; transition: all 0.2s; }
 .add-data-btn:hover { background: rgba(0,212,255,0.08); border-style: solid; }
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; }
@@ -71,8 +68,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
 .form-group { display: flex; flex-direction: column; gap: 6px; }
 .form-group label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
-.form-group input, .form-group select { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 14px; font-family: 'Barlow', sans-serif; outline: none; }
-.form-group input:focus { border-color: var(--accent); }
+.form-group select { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 14px; font-family: 'Barlow', sans-serif; outline: none; }
 .modal-btns { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
 .btn-primary { padding: 8px 20px; background: var(--accent); border: none; border-radius: 6px; color: #000; font-weight: 700; font-size: 13px; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; }
 .btn-cancel { padding: 8px 20px; background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-weight: 600; font-size: 13px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
@@ -84,7 +80,6 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .celeb-name { font-family: 'Barlow Condensed', sans-serif; font-size: 52px; font-weight: 900; color: var(--text); line-height: 1; margin-bottom: 8px; }
 .celeb-detail { font-size: 16px; color: var(--muted); }
 canvas#confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 199; display: none; }
-.month-label { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
 .col-header { display: grid; grid-template-columns: 36px 1fr 80px 80px 80px 80px 100px; gap: 12px; padding: 0 18px 8px; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
 .feed-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
 .feed-item:last-child { border-bottom: none; }
@@ -94,6 +89,9 @@ canvas#confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-inde
 .badge-submitted { background: rgba(0,212,255,0.15); color: var(--accent); }
 .feed-text { color: var(--text); }
 .feed-pts { margin-left: auto; color: var(--green); font-weight: 700; font-size: 12px; white-space: nowrap; }
+.month-label { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+.status-bar { font-size: 11px; color: var(--muted); text-align: center; padding: 6px; }
+.error-banner { background: rgba(255,100,100,0.1); border: 1px solid rgba(255,100,100,0.3); border-radius: 6px; padding: 10px 16px; font-size: 13px; color: #ff6464; margin: 8px 16px 0; display: none; }
 </style>
 </head>
 <body>
@@ -103,33 +101,8 @@ canvas#confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-inde
 <div id="celebration-overlay" class="celebration-overlay">
   <div class="celebration-card">
     <div class="celeb-type" id="celeb-type">New Funded Deal</div>
-    <div class="celeb-name" id="celeb-name">Rafael R.</div>
-    <div class="celeb-detail" id="celeb-detail">$75,000 funded · +15 pts</div>
-  </div>
-</div>
-
-<div id="modal-overlay" class="modal-overlay">
-  <div class="modal">
-    <h3>Log Salesforce Event</h3>
-    <div class="form-row">
-      <div class="form-group"><label>Rep Name</label><select id="m-rep"></select></div>
-      <div class="form-group">
-        <label>Event Type</label>
-        <select id="m-type" onchange="toggleFundedAmount()">
-          <option value="submission">Submission (+2 pts)</option>
-          <option value="approval">Approval (+4 pts)</option>
-          <option value="funded">Funded Deal (+8 pts)</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-group" id="funded-amount-group" style="display:none; margin-bottom:12px;">
-      <label>Funded Amount ($)</label>
-      <input type="number" id="m-amount" placeholder="e.g. 75000" />
-    </div>
-    <div class="modal-btns">
-      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn-primary" onclick="submitEvent()">Log Event</button>
-    </div>
+    <div class="celeb-name" id="celeb-name"></div>
+    <div class="celeb-detail" id="celeb-detail"></div>
   </div>
 </div>
 
@@ -144,7 +117,7 @@ canvas#confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-inde
       <div class="form-group"><label>Convos Leader</label><select id="o-convos"></select></div>
       <div class="form-group"><label>Meetings Leader</label><select id="o-meetings"></select></div>
     </div>
-    <p style="font-size:11px; color:var(--muted); margin-top:8px;">Select the same rep in two fields to award a tie (0.5 pts each).</p>
+    <p style="font-size:11px;color:var(--muted);margin-top:8px;">Select same rep in multiple fields for a tie (0.5 pts each).</p>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeOrumModal()">Cancel</button>
       <button class="btn-primary" onclick="submitOrum()">Apply Points</button>
@@ -152,59 +125,60 @@ canvas#confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-inde
   </div>
 </div>
 
-<div id="app">
-  <div class="header">
-    <div>
-      <div class="logo">APEX <span>LEADERBOARD</span></div>
-      <div class="month-label" id="month-label"></div>
-    </div>
-    <div style="display:flex;align-items:center;gap:16px;">
-      <div class="period-tabs">
-        <button class="tab active" onclick="setTab('monthly',this)">Monthly</button>
-        <button class="tab" onclick="setTab('weekly',this)">Weekly</button>
-      </div>
-      <div class="live-dot"><div class="dot"></div>LIVE</div>
-    </div>
+<div id="error-banner" class="error-banner"></div>
+
+<div class="header">
+  <div>
+    <div class="logo">APEX <span>LEADERBOARD</span></div>
+    <div class="month-label" id="month-label"></div>
   </div>
-  <div class="main">
-    <div class="leaderboard-section">
-      <div class="col-header">
-        <div></div><div>Rep</div>
-        <div style="text-align:center">Subs</div>
-        <div style="text-align:center">Approvals</div>
-        <div style="text-align:center">Funded</div>
-        <div style="text-align:center">$ Funded</div>
-        <div style="text-align:right">Score</div>
-      </div>
-      <div id="leaderboard"></div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div class="period-tabs">
+      <button class="tab active" onclick="setTab('monthly',this)">Monthly</button>
+      <button class="tab" onclick="setTab('weekly',this)">Weekly</button>
     </div>
-    <div class="sidebar">
-      <div class="side-card">
-        <div class="side-card-title">Orum Daily Leaders</div>
-        <div class="orum-row"><span class="orum-cat">Dials</span><span class="orum-leader" id="ol-dials">—</span><span class="orum-pts" id="op-dials"></span></div>
-        <div class="orum-row"><span class="orum-cat">Connects</span><span class="orum-leader" id="ol-connects">—</span><span class="orum-pts" id="op-connects"></span></div>
-        <div class="orum-row"><span class="orum-cat">Convos</span><span class="orum-leader" id="ol-convos">—</span><span class="orum-pts" id="op-convos"></span></div>
-        <div class="orum-row"><span class="orum-cat">Meetings</span><span class="orum-leader" id="ol-meetings">—</span><span class="orum-pts" id="op-meetings"></span></div>
-        <button class="add-data-btn" style="margin-top:12px;" onclick="openOrumModal()">+ Update Orum Data</button>
+    <div class="live-dot"><div class="dot"></div>LIVE</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="leaderboard-section">
+    <div class="col-header">
+      <div></div><div>Rep</div>
+      <div style="text-align:center">Subs</div>
+      <div style="text-align:center">Approvals</div>
+      <div style="text-align:center">Funded</div>
+      <div style="text-align:center">$ Funded</div>
+      <div style="text-align:right">Score</div>
+    </div>
+    <div id="leaderboard"><div style="padding:20px;color:var(--muted);text-align:center;">Loading Salesforce data...</div></div>
+    <div class="status-bar" id="status-bar"></div>
+  </div>
+  <div class="sidebar">
+    <div class="side-card">
+      <div class="side-card-title">Orum Daily Leaders</div>
+      <div class="orum-row"><span class="orum-cat">Dials</span><span class="orum-leader" id="ol-dials">—</span><span class="orum-pts" id="op-dials"></span></div>
+      <div class="orum-row"><span class="orum-cat">Connects</span><span class="orum-leader" id="ol-connects">—</span><span class="orum-pts" id="op-connects"></span></div>
+      <div class="orum-row"><span class="orum-cat">Convos</span><span class="orum-leader" id="ol-convos">—</span><span class="orum-pts" id="op-convos"></span></div>
+      <div class="orum-row"><span class="orum-cat">Meetings</span><span class="orum-leader" id="ol-meetings">—</span><span class="orum-pts" id="op-meetings"></span></div>
+      <button class="add-data-btn" style="margin-top:12px;" onclick="openOrumModal()">+ Update Orum Data</button>
+    </div>
+    <div class="side-card">
+      <div class="side-card-title">Points Key</div>
+      <div class="score-breakdown">
+        <div class="breakdown-item"><div class="breakdown-val" style="color:var(--accent)">2</div><div class="breakdown-lbl">Submission</div></div>
+        <div class="breakdown-item"><div class="breakdown-val" style="color:var(--purple)">4</div><div class="breakdown-lbl">Approval</div></div>
+        <div class="breakdown-item"><div class="breakdown-val" style="color:var(--green)">8</div><div class="breakdown-lbl">Funded Deal</div></div>
+        <div class="breakdown-item"><div class="breakdown-val" style="color:var(--gold)">1</div><div class="breakdown-lbl">per $10k</div></div>
       </div>
-      <div class="side-card">
-        <div class="side-card-title">Points Key</div>
-        <div class="score-breakdown">
-          <div class="breakdown-item"><div class="breakdown-val" style="color:var(--accent)">2</div><div class="breakdown-lbl">Submission</div></div>
-          <div class="breakdown-item"><div class="breakdown-val" style="color:var(--purple)">4</div><div class="breakdown-lbl">Approval</div></div>
-          <div class="breakdown-item"><div class="breakdown-val" style="color:var(--green)">8</div><div class="breakdown-lbl">Funded Deal</div></div>
-          <div class="breakdown-item"><div class="breakdown-val" style="color:var(--gold)">1</div><div class="breakdown-lbl">per $10k</div></div>
-        </div>
-        <div style="margin-top:10px; padding:8px; background:var(--surface2); border-radius:6px; font-size:11px; color:var(--muted); line-height:1.6;">
-          <span style="color:var(--gold)">+1 pt</span> daily Orum leader per category<br>
-          <span style="color:var(--gold)">+0.5 pts</span> if tied · resets monthly
-        </div>
+      <div style="margin-top:10px;padding:8px;background:var(--surface2);border-radius:6px;font-size:11px;color:var(--muted);line-height:1.6;">
+        <span style="color:var(--gold)">+1 pt</span> daily Orum leader per category<br>
+        <span style="color:var(--gold)">+0.5 pts</span> if tied · resets monthly
       </div>
-      <div class="side-card">
-        <div class="side-card-title">Recent Activity</div>
-        <div id="activity-feed"><div style="font-size:12px;color:var(--muted);">No events yet this month.</div></div>
-      </div>
-      <button class="add-data-btn" onclick="openModal()">+ Log Salesforce Event</button>
+    </div>
+    <div class="side-card">
+      <div class="side-card-title">Recent Activity</div>
+      <div id="activity-feed"><div style="font-size:12px;color:var(--muted);">No events yet this month.</div></div>
     </div>
   </div>
 </div>
@@ -212,55 +186,22 @@ canvas#confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-inde
 <script>
 const REPS = ["Victoria G.","Tony M.","Rafael R.","Benjamin S.","John R.","Miguel A.","Charles F.","Richard N."];
 const COLORS = ["#00d4ff","#ff6b35","#F5C518","#a855f7","#00e676","#ec4899","#06b6d4","#84cc16"];
-const STORAGE_KEY = 'apex_leaderboard_v1';
 
 let currentTab = 'monthly';
+let sfStats = null;
+let orumPts = { monthly: {}, weekly: {} };
+let feed = [];
+let orumLeaders = { dials: null, connects: null, convos: null, meetings: null };
 
-function defaultState() {
-  return {
-    monthly: Object.fromEntries(REPS.map(r => [r, {submissions:0,approvals:0,funded:0,fundedAmt:0,orumPts:0}])),
-    weekly:  Object.fromEntries(REPS.map(r => [r, {submissions:0,approvals:0,funded:0,fundedAmt:0,orumPts:0}])),
-    feed: [],
-    lastMonth: new Date().getMonth(),
-    lastWeek: getWeekNumber()
-  };
+REPS.forEach(r => { orumPts.monthly[r] = 0; orumPts.weekly[r] = 0; });
+
+function calcScore(rep, period) {
+  const d = sfStats ? sfStats[rep] : { submissions: 0, approvals: 0, funded: 0, fundedAmt: 0 };
+  const orum = (orumPts[period] && orumPts[period][rep]) || 0;
+  return (d.submissions * 2) + (d.approvals * 4) + (d.funded * 8) + Math.floor((d.fundedAmt || 0) / 10000) + orum;
 }
 
-function getWeekNumber() {
-  const d = new Date(); const onejan = new Date(d.getFullYear(),0,1);
-  return Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7);
-}
-
-function loadState() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return defaultState();
-    const s = JSON.parse(saved);
-    const now = new Date();
-    if (s.lastMonth !== now.getMonth()) {
-      const fresh = defaultState();
-      fresh.feed = s.feed || [];
-      return fresh;
-    }
-    if (s.lastWeek !== getWeekNumber()) {
-      REPS.forEach(r => { if(s.weekly[r]) s.weekly[r].orumPts = 0; });
-      s.lastWeek = getWeekNumber();
-    }
-    return s;
-  } catch(e) { return defaultState(); }
-}
-
-function saveState() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
-}
-
-let state = loadState();
-
-function calcScore(d) {
-  return (d.submissions*2)+(d.approvals*4)+(d.funded*8)+Math.floor(d.fundedAmt/10000)+d.orumPts;
-}
-
-function getInitials(name) { return name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase(); }
+function getInitials(name) { return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase(); }
 
 function setTab(tab, el) {
   currentTab = tab;
@@ -270,128 +211,145 @@ function setTab(tab, el) {
 }
 
 function renderLeaderboard() {
-  const data = state[currentTab];
-  const sorted = REPS.map(r => ({name:r,...data[r],score:calcScore(data[r])})).sort((a,b)=>b.score-a.score);
+  const sorted = REPS.map(r => ({ name: r, score: calcScore(r, currentTab), ...(sfStats ? sfStats[r] : {submissions:0,approvals:0,funded:0,fundedAmt:0}) }))
+    .sort((a, b) => b.score - a.score);
   const maxScore = sorted[0].score || 1;
   const lb = document.getElementById('leaderboard');
   lb.innerHTML = '';
-  sorted.forEach((rep,i) => {
+  sorted.forEach((rep, i) => {
     const idx = REPS.indexOf(rep.name);
     const row = document.createElement('div');
-    row.className = `rep-row ${i<3?'rank-'+(i+1):'rank-other'}`;
-    const pct = Math.round((rep.score/maxScore)*100);
+    row.className = `rep-row ${i < 3 ? 'rank-' + (i + 1) : 'rank-other'}`;
+    const pct = Math.round((rep.score / maxScore) * 100);
     row.innerHTML = `
-      <div class="rank-num">${i+1}</div>
+      <div class="rank-num">${i + 1}</div>
       <div style="display:flex;align-items:center;">
         <div class="rep-avatar" style="background:${COLORS[idx]}22;color:${COLORS[idx]};border-color:${COLORS[idx]}44;">${getInitials(rep.name)}</div>
         <div class="rep-name">${rep.name}</div>
       </div>
-      <div class="stat-cell"><div class="stat-val">${rep.submissions}</div><div class="stat-lbl">Subs</div></div>
-      <div class="stat-cell"><div class="stat-val">${rep.approvals}</div><div class="stat-lbl">Appr</div></div>
-      <div class="stat-cell"><div class="stat-val">${rep.funded}</div><div class="stat-lbl">Deals</div></div>
-      <div class="stat-cell"><div class="stat-val">$${rep.fundedAmt>=1000?(rep.fundedAmt/1000).toFixed(0)+'k':rep.fundedAmt}</div><div class="stat-lbl">Funded</div></div>
-      <div class="score-cell"><div class="score-big">${calcScore(rep).toFixed(1)}</div><div class="score-lbl">pts</div></div>
+      <div class="stat-cell"><div class="stat-val">${rep.submissions || 0}</div><div class="stat-lbl">Subs</div></div>
+      <div class="stat-cell"><div class="stat-val">${rep.approvals || 0}</div><div class="stat-lbl">Appr</div></div>
+      <div class="stat-cell"><div class="stat-val">${rep.funded || 0}</div><div class="stat-lbl">Deals</div></div>
+      <div class="stat-cell"><div class="stat-val">$${(rep.fundedAmt || 0) >= 1000 ? ((rep.fundedAmt || 0) / 1000).toFixed(0) + 'k' : (rep.fundedAmt || 0)}</div><div class="stat-lbl">Funded</div></div>
+      <div class="score-cell"><div class="score-big">${rep.score.toFixed(1)}</div><div class="score-lbl">pts</div></div>
       <div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div>`;
     lb.appendChild(row);
   });
 }
 
-function populateRepSelects() {
-  ['m-rep','o-dials','o-connects','o-convos','o-meetings'].forEach(id => {
-    const sel = document.getElementById(id);
-    if (!sel) return;
-    const hasNone = id !== 'm-rep';
-    sel.innerHTML = (hasNone ? '<option value="">— none —</option>' : '') + REPS.map(r=>`<option value="${r}">${r}</option>`).join('');
-  });
-}
-
-function openModal() { document.getElementById('modal-overlay').classList.add('open'); }
-function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
-
-function toggleFundedAmount() {
-  document.getElementById('funded-amount-group').style.display = document.getElementById('m-type').value==='funded'?'block':'none';
-}
-
-function submitEvent() {
-  const rep = document.getElementById('m-rep').value;
-  const type = document.getElementById('m-type').value;
-  const amount = parseFloat(document.getElementById('m-amount').value)||0;
-  ['monthly','weekly'].forEach(p => {
-    if(type==='submission') state[p][rep].submissions++;
-    if(type==='approval') state[p][rep].approvals++;
-    if(type==='funded'){state[p][rep].funded++;state[p][rep].fundedAmt+=amount;}
-  });
-  const pts = type==='submission'?2:type==='approval'?4:8+Math.floor(amount/10000);
-  const badgeClass = type==='submission'?'badge-submitted':type==='approval'?'badge-approved':'badge-funded';
-  const label = type==='submission'?'Submitted':type==='approval'?'Approved':'Funded';
-  state.feed.unshift({rep,type:label,pts,amount,badgeClass});
-  if(state.feed.length>8) state.feed.pop();
-  saveState();
-  renderLeaderboard();
-  renderFeed();
-  closeModal();
-  document.getElementById('m-amount').value='';
-  triggerCelebration(rep,label,amount,pts);
-}
-
 function renderFeed() {
-  const feed = document.getElementById('activity-feed');
-  if(!state.feed.length){feed.innerHTML='<div style="font-size:12px;color:var(--muted);">No events yet this month.</div>';return;}
-  feed.innerHTML = state.feed.map(f=>`
+  const el = document.getElementById('activity-feed');
+  if (!feed.length) { el.innerHTML = '<div style="font-size:12px;color:var(--muted);">No events yet this month.</div>'; return; }
+  el.innerHTML = feed.slice(0, 8).map(f => `
     <div class="feed-item">
       <span class="feed-badge ${f.badgeClass}">${f.type}</span>
-      <span class="feed-text">${f.rep}${f.amount?' · $'+f.amount.toLocaleString():''}</span>
+      <span class="feed-text">${f.rep}${f.amount ? ' · $' + f.amount.toLocaleString() : ''}</span>
       <span class="feed-pts">+${f.pts} pts</span>
     </div>`).join('');
 }
 
-function triggerCelebration(rep,type,amount,pts) {
+async function fetchData() {
+  try {
+    const res = await fetch('/api/data');
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error);
+
+    // Handle new events (celebrations)
+    if (data.newEvents && data.newEvents.length > 0) {
+      data.newEvents.forEach(evt => {
+        const pts = evt.type === 'Submission' ? 2 : evt.type === 'Approval' ? 4 : 8 + Math.floor(evt.amount / 10000);
+        const badgeClass = evt.type === 'Submission' ? 'badge-submitted' : evt.type === 'Approval' ? 'badge-approved' : 'badge-funded';
+        feed.unshift({ rep: evt.rep, type: evt.type, pts, amount: evt.amount, badgeClass });
+        triggerCelebration(evt.rep, evt.type, evt.amount, pts);
+      });
+      renderFeed();
+    }
+
+    sfStats = data.stats;
+    document.getElementById('month-label').textContent = data.month;
+    document.getElementById('status-bar').textContent = `Last updated: ${new Date(data.lastFetch).toLocaleTimeString()}`;
+    document.getElementById('error-banner').style.display = 'none';
+    renderLeaderboard();
+  } catch (err) {
+    const banner = document.getElementById('error-banner');
+    banner.textContent = 'Could not connect to Salesforce: ' + err.message;
+    banner.style.display = 'block';
+    console.error(err);
+  }
+}
+
+async function fetchOrum() {
+  try {
+    const res = await fetch('/api/orum');
+    const data = await res.json();
+    if (data.success) {
+      orumPts = { monthly: data.orumData.monthly, weekly: data.orumData.weekly };
+      orumLeaders = data.orumData.leaders;
+      renderOrumLeaders();
+      renderLeaderboard();
+    }
+  } catch (e) {}
+}
+
+function renderOrumLeaders() {
+  ['dials','connects','convos','meetings'].forEach(cat => {
+    const rep = orumLeaders[cat];
+    document.getElementById(`ol-${cat}`).textContent = rep || '—';
+    document.getElementById(`op-${cat}`).textContent = rep ? '+1pt' : '';
+  });
+}
+
+function triggerCelebration(rep, type, amount, pts) {
   const overlay = document.getElementById('celebration-overlay');
   document.getElementById('celeb-type').textContent = `New ${type}!`;
   document.getElementById('celeb-name').textContent = rep;
-  document.getElementById('celeb-detail').textContent = amount?`$${amount.toLocaleString()} funded · +${pts} pts`:`+${pts} pts added`;
+  document.getElementById('celeb-detail').textContent = amount ? `$${amount.toLocaleString()} funded · +${pts} pts` : `+${pts} pts added`;
   overlay.classList.add('show');
   const canvas = document.getElementById('confetti-canvas');
-  canvas.style.display='block'; canvas.width=window.innerWidth; canvas.height=window.innerHeight;
-  const colors = type==='Funded'?['#F5C518','#00e676','#ffffff']:type==='Approved'?['#a855f7','#00d4ff','#ffffff']:['#00d4ff','#ffffff','#a855f7'];
-  if(window.confetti){
-    confetti({particleCount:180,spread:100,origin:{y:0.4},colors});
-    setTimeout(()=>confetti({particleCount:80,spread:60,origin:{y:0.6,x:0.2},colors}),300);
-    setTimeout(()=>confetti({particleCount:80,spread:60,origin:{y:0.6,x:0.8},colors}),500);
+  canvas.style.display = 'block'; canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const colors = type === 'Funded' ? ['#F5C518','#00e676','#ffffff'] : type === 'Approval' ? ['#a855f7','#00d4ff','#ffffff'] : ['#00d4ff','#ffffff','#a855f7'];
+  if (window.confetti) {
+    confetti({ particleCount: 180, spread: 100, origin: { y: 0.4 }, colors });
+    setTimeout(() => confetti({ particleCount: 80, spread: 60, origin: { y: 0.6, x: 0.2 }, colors }), 300);
+    setTimeout(() => confetti({ particleCount: 80, spread: 60, origin: { y: 0.6, x: 0.8 }, colors }), 500);
   }
-  setTimeout(()=>{overlay.classList.remove('show');canvas.style.display='none';},4000);
+  setTimeout(() => { overlay.classList.remove('show'); canvas.style.display = 'none'; }, 4500);
 }
 
-function openOrumModal() { document.getElementById('orum-modal').classList.add('open'); }
+function openOrumModal() {
+  ['o-dials','o-connects','o-convos','o-meetings'].forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="">— none —</option>' + REPS.map(r => `<option value="${r}">${r}</option>`).join('');
+  });
+  document.getElementById('orum-modal').classList.add('open');
+}
+
 function closeOrumModal() { document.getElementById('orum-modal').classList.remove('open'); }
 
-function submitOrum() {
-  const cats = ['dials','connects','convos','meetings'];
-  const selected = {};
-  cats.forEach(c=>{selected[c]=document.getElementById(`o-${c}`).value||null;});
-  const tally = {};
-  cats.forEach(c=>{const r=selected[c];if(r) tally[r]=(tally[r]||0)+1;});
-  cats.forEach(c=>{
-    const rep=selected[c];
-    const lbl=document.getElementById(`ol-${c}`);
-    const pts=document.getElementById(`op-${c}`);
-    if(!rep){lbl.textContent='—';pts.textContent='';return;}
-    const p=tally[rep]>1?0.5:1;
-    lbl.textContent=rep; pts.textContent=`+${p}pt`;
-  });
-  Object.entries(tally).forEach(([rep,count])=>{
-    const pts=count>1?count*0.5:count;
-    ['monthly','weekly'].forEach(p=>{state[p][rep].orumPts=(state[p][rep].orumPts||0)+pts;});
-  });
-  saveState();
-  renderLeaderboard();
+async function submitOrum() {
+  const leaders = {
+    dials: document.getElementById('o-dials').value || null,
+    connects: document.getElementById('o-connects').value || null,
+    convos: document.getElementById('o-convos').value || null,
+    meetings: document.getElementById('o-meetings').value || null
+  };
+  try {
+    const res = await fetch('/api/orum', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leaders }) });
+    const data = await res.json();
+    if (data.success) {
+      orumPts = { monthly: data.orumData.monthly, weekly: data.orumData.weekly };
+      orumLeaders = leaders;
+      renderOrumLeaders();
+      renderLeaderboard();
+    }
+  } catch (e) { console.error(e); }
   closeOrumModal();
 }
 
-document.getElementById('month-label').textContent = new Date().toLocaleString('default',{month:'long',year:'numeric'});
-populateRepSelects();
-renderLeaderboard();
-renderFeed();
+// Init
+fetchData();
+fetchOrum();
+setInterval(fetchData, 120000); // refresh every 2 minutes
 </script>
 </body>
 </html>
