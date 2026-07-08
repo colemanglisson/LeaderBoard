@@ -15,7 +15,10 @@ const REP_MAP = {
   '005Hr00000IEPIBIA5': 'John R.',
   '005aZ00000WYXOvQAP': 'Miguel A.',
   '005aZ00000NRfg9QAD': 'Charles F.',
-  '005Hr00000IEPI6IAP': 'Richard N.'
+  '005Hr00000IEPI6IAP': 'Richard N.',
+  '005aZ00000dBvaqQAC': 'Larissa S.',
+  '005aZ00000cOb6zQAC': 'Lorenson J.',
+  '005aZ00000dBvarQAC': 'Jason B.'
 };
 
 const OWNER_IDS = Object.keys(REP_MAP);
